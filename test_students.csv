@@ -1,0 +1,7 @@
+Student ID, Name, Email, Semester, Subject, Grade, Attendance, Engagement Score
+STU006, Charles Xavier, charles@dashboard.com, 3, Physics, 95.0, 96.0, 9.5
+STU007, Logan Howlett, logan@dashboard.com, 3, History, 150.0, 80.0, 5.0
+STU008, Jean Grey, jean@dashboard.com, 3, Physics, 98.0, -10.0, 8.0
+STU009, Scott Summers, scott@dashboard.com, 0, Mathematics, 82.0, 85.0, 6.0
+STU010, Ororo Munroe, ororo@dashboard.com, 3, Physics, 88.0, 90.0, 12.5
+, Unknown Student, unknown@email.com, 3, Physics, 80.0, 80.0, 8.0
