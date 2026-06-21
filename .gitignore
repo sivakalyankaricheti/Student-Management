@@ -1,0 +1,31 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*
+!.env.example
+
+# Backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+*.egg-info/
+*.egg
+
+# Storage / Docker Data
+pgdata/
+postgres_data/
+backend/storage/*
+!backend/storage/.gitkeep
