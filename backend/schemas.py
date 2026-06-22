@@ -119,6 +119,9 @@ class SubjectBase(BaseModel):
 class SubjectCreate(SubjectBase):
     pass
 
+class SubjectUpdate(SubjectBase):
+    pass
+
 class SubjectResponse(SubjectBase):
     id: int
     teacher: Optional[UserResponse] = None
@@ -129,6 +132,9 @@ class SubjectResponse(SubjectBase):
 # Student enrollment request
 class StudentEnrollRequest(BaseModel):
     subject_id: int
+
+class SubjectRosterUpdate(BaseModel):
+    student_ids: List[int]
 
 # Attendance Schemas
 class DailyAttendanceRecord(BaseModel):

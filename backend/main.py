@@ -574,7 +574,143 @@ def create_subject(
     db.refresh(subject)
     return subject
 
-# Student: List available subjects for their semester (not enrolled)
+# Admin: Edit subject details and reassign its teacher
+@app.put("/api/subjects/{subject_id}", response_model=schemas.SubjectResponse)
+def update_subject(
+    subject_id: int,
+    subj_in: schemas.SubjectUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.RoleChecker(["Admin"]))
+):
+    subject = db.query(models.Subject).filter(models.Subject.id == subject_id).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail="Subject not found.")
+
+    if subj_in.teacher_id is not None:
+        teacher = db.query(models.User).filter(
+            models.User.id == subj_in.teacher_id,
+            models.User.role.in_(["Teacher", "AcademicAdvisor"])
+        ).first()
+        if not teacher:
+            raise HTTPException(status_code=400, detail="Invalid teacher selected.")
+
+    enrolled_students = db.query(models.Student).join(
+        models.StudentSubjectEnrollment
+    ).filter(
+        models.StudentSubjectEnrollment.subject_id == subject_id
+    ).all()
+
+    old_name = subject.name
+    old_semester = subject.semester
+    subject.name = subj_in.name.strip()
+    subject.semester = subj_in.semester
+    subject.teacher_id = subj_in.teacher_id
+
+    if old_name != subject.name or old_semester != subject.semester:
+        enrolled_ids = [student.id for student in enrolled_students]
+        if enrolled_ids:
+            db.query(models.PerformanceRecord).filter(
+                models.PerformanceRecord.student_id.in_(enrolled_ids),
+                models.PerformanceRecord.subject == old_name,
+                models.PerformanceRecord.semester == old_semester
+            ).update(
+                {
+                    models.PerformanceRecord.subject: subject.name,
+                    models.PerformanceRecord.semester: subject.semester
+                },
+                synchronize_session=False
+            )
+
+    db.commit()
+    db.refresh(subject)
+    return subject
+
+# Admin: List the current subject roster
+@app.get("/api/subjects/{subject_id}/students", response_model=List[schemas.StudentResponse])
+def get_admin_subject_students(
+    subject_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.RoleChecker(["Admin"]))
+):
+    subject = db.query(models.Subject).filter(models.Subject.id == subject_id).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail="Subject not found.")
+
+    return db.query(models.Student).join(models.StudentSubjectEnrollment).filter(
+        models.StudentSubjectEnrollment.subject_id == subject_id
+    ).all()
+
+# Admin: Add or remove students by replacing the subject roster
+@app.put("/api/subjects/{subject_id}/students")
+def update_subject_students(
+    subject_id: int,
+    roster_in: schemas.SubjectRosterUpdate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.RoleChecker(["Admin"]))
+):
+    subject = db.query(models.Subject).filter(models.Subject.id == subject_id).first()
+    if not subject:
+        raise HTTPException(status_code=404, detail="Subject not found.")
+
+    requested_ids = set(roster_in.student_ids)
+    requested_students = []
+    if requested_ids:
+        requested_students = db.query(models.Student).filter(
+            models.Student.id.in_(requested_ids)
+        ).all()
+        found_ids = {student.id for student in requested_students}
+        missing_ids = sorted(requested_ids - found_ids)
+        if missing_ids:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown student IDs: {', '.join(map(str, missing_ids))}"
+            )
+
+    existing_enrollments = db.query(models.StudentSubjectEnrollment).filter(
+        models.StudentSubjectEnrollment.subject_id == subject_id
+    ).all()
+    existing_by_student = {
+        enrollment.student_id: enrollment for enrollment in existing_enrollments
+    }
+
+    for student_id, enrollment in existing_by_student.items():
+        if student_id not in requested_ids:
+            db.delete(enrollment)
+
+    for student in requested_students:
+        if student.id in existing_by_student:
+            continue
+
+        db.add(models.StudentSubjectEnrollment(
+            student_id=student.id,
+            subject_id=subject.id
+        ))
+
+        performance = db.query(models.PerformanceRecord).filter(
+            models.PerformanceRecord.student_id == student.id,
+            models.PerformanceRecord.subject == subject.name,
+            models.PerformanceRecord.semester == subject.semester
+        ).first()
+        if not performance:
+            db.add(models.PerformanceRecord(
+                student_id=student.id,
+                subject=subject.name,
+                grade=0.0,
+                semester=subject.semester,
+                attendance=100.0
+            ))
+
+    db.commit()
+
+    for student_id in requested_ids:
+        recompute_student_risk(student_id, db)
+
+    return {
+        "message": f"Roster updated for {subject.name}.",
+        "student_count": len(requested_ids)
+    }
+
+# Student: List every subject they have not enrolled in
 @app.get("/api/student/available-subjects", response_model=List[schemas.SubjectResponse])
 def get_available_subjects(
     db: Session = Depends(get_db),
@@ -586,10 +722,10 @@ def get_available_subjects(
         
     enrolled_subject_ids = [e.subject_id for e in student.enrollments]
     
-    return db.query(models.Subject).filter(
-        models.Subject.semester == student.semester,
-        ~models.Subject.id.in_(enrolled_subject_ids) if enrolled_subject_ids else True
-    ).all()
+    query = db.query(models.Subject)
+    if enrolled_subject_ids:
+        query = query.filter(~models.Subject.id.in_(enrolled_subject_ids))
+    return query.order_by(models.Subject.semester, models.Subject.name).all()
 
 # Student: List enrolled subjects
 @app.get("/api/student/my-subjects", response_model=List[schemas.SubjectResponse])
@@ -618,9 +754,6 @@ def enroll_student(
     if not subject:
         raise HTTPException(status_code=404, detail="Subject not found.")
         
-    if subject.semester != student.semester:
-        raise HTTPException(status_code=400, detail="Subject semester mismatch.")
-        
     # Check if already enrolled
     existing = db.query(models.StudentSubjectEnrollment).filter(
         models.StudentSubjectEnrollment.student_id == student.id,
@@ -639,14 +772,14 @@ def enroll_student(
     perf = db.query(models.PerformanceRecord).filter(
         models.PerformanceRecord.student_id == student.id,
         models.PerformanceRecord.subject == subject.name,
-        models.PerformanceRecord.semester == student.semester
+        models.PerformanceRecord.semester == subject.semester
     ).first()
     if not perf:
         db.add(models.PerformanceRecord(
             student_id=student.id,
             subject=subject.name,
             grade=0.0,
-            semester=student.semester,
+            semester=subject.semester,
             attendance=100.0
         ))
         

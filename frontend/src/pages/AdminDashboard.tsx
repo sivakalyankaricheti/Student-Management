@@ -41,6 +41,8 @@ export const AdminDashboard: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [subjectModalOpen, setSubjectModalOpen] = useState(false);
+  const [subjectEditModalOpen, setSubjectEditModalOpen] = useState(false);
+  const [rosterModalOpen, setRosterModalOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   
   // Create user state
@@ -68,6 +70,15 @@ export const AdminDashboard: React.FC = () => {
   const [newSubjName, setNewSubjName] = useState('');
   const [newSubjSem, setNewSubjSem] = useState(3);
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('');
+
+  // Edit subject and roster state
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
+  const [editSubjName, setEditSubjName] = useState('');
+  const [editSubjSem, setEditSubjSem] = useState(1);
+  const [editTeacherId, setEditTeacherId] = useState<string>('');
+  const [rosterStudentIds, setRosterStudentIds] = useState<number[]>([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterSaving, setRosterSaving] = useState(false);
 
   const [actionError, setActionError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
@@ -320,6 +331,116 @@ export const AdminDashboard: React.FC = () => {
       fetchSubjects();
     } catch (err: any) {
       setActionError(err.message);
+    }
+  };
+
+  const openSubjectEditModal = (subject: Subject) => {
+    setEditingSubject(subject);
+    setEditSubjName(subject.name);
+    setEditSubjSem(subject.semester);
+    setEditTeacherId(subject.teacher_id?.toString() || '');
+    setSubjectEditModalOpen(true);
+  };
+
+  const handleUpdateSubject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSubject) return;
+
+    setActionError('');
+    setActionSuccess('');
+
+    try {
+      const res = await fetch(`/api/subjects/${editingSubject.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: editSubjName,
+          semester: editSubjSem,
+          teacher_id: editTeacherId ? parseInt(editTeacherId) : null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Failed to update subject');
+      }
+
+      setActionSuccess(`Subject '${editSubjName}' updated successfully!`);
+      setSubjectEditModalOpen(false);
+      setEditingSubject(null);
+      fetchSubjects();
+    } catch (err: any) {
+      setActionError(err.message);
+    }
+  };
+
+  const openRosterModal = async (subject: Subject) => {
+    setEditingSubject(subject);
+    setRosterStudentIds([]);
+    setRosterModalOpen(true);
+    setRosterLoading(true);
+    setActionError('');
+
+    try {
+      const res = await fetch(`/api/subjects/${subject.id}/students`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Failed to load subject roster');
+      }
+
+      const data: StudentProfile[] = await res.json();
+      setRosterStudentIds(data.map((student) => student.id));
+    } catch (err: any) {
+      setActionError(err.message);
+    } finally {
+      setRosterLoading(false);
+    }
+  };
+
+  const toggleRosterStudent = (studentId: number) => {
+    setRosterStudentIds((current) =>
+      current.includes(studentId)
+        ? current.filter((id) => id !== studentId)
+        : [...current, studentId]
+    );
+  };
+
+  const handleSaveRoster = async () => {
+    if (!editingSubject) return;
+
+    setRosterSaving(true);
+    setActionError('');
+    setActionSuccess('');
+
+    try {
+      const res = await fetch(`/api/subjects/${editingSubject.id}/students`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ student_ids: rosterStudentIds }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.detail || 'Failed to update subject roster');
+      }
+
+      setActionSuccess(
+        `${rosterStudentIds.length} student${rosterStudentIds.length === 1 ? '' : 's'} assigned to '${editingSubject.name}'.`
+      );
+      setRosterModalOpen(false);
+      setEditingSubject(null);
+    } catch (err: any) {
+      setActionError(err.message);
+    } finally {
+      setRosterSaving(false);
     }
   };
 
@@ -580,6 +701,7 @@ export const AdminDashboard: React.FC = () => {
                   <th>Target Semester</th>
                   <th>Assigned Instructor</th>
                   <th>Instructor Email</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -603,11 +725,33 @@ export const AdminDashboard: React.FC = () => {
                     <td style={{ color: 'var(--text-muted)' }}>
                       {subj.teacher ? subj.teacher.email : 'N/A'}
                     </td>
+                    <td>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                        <button
+                          className="btn-secondary"
+                          onClick={() => openSubjectEditModal(subj)}
+                          title="Edit subject and reassign teacher"
+                          aria-label={`Edit ${subj.name}`}
+                          style={{ padding: '8px' }}
+                        >
+                          <Edit3 size={16} />
+                        </button>
+                        <button
+                          className="btn-secondary"
+                          onClick={() => openRosterModal(subj)}
+                          title="Manage assigned students"
+                          aria-label={`Manage students for ${subj.name}`}
+                          style={{ padding: '8px' }}
+                        >
+                          <Users size={16} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
                 {subjects.length === 0 && (
                   <tr>
-                    <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
+                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px' }}>
                       No subjects registered in system. Click 'Create Subject' to allocate one.
                     </td>
                   </tr>
@@ -921,6 +1065,150 @@ export const AdminDashboard: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Subject Modal */}
+      {subjectEditModalOpen && editingSubject && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 style={{ color: 'white', fontSize: '20px' }}>Edit Curriculum Subject</h3>
+              <button
+                onClick={() => setSubjectEditModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}
+                aria-label="Close edit subject dialog"
+              >
+                &times;
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateSubject}>
+              <div className="form-group">
+                <label>Subject Name</label>
+                <input
+                  type="text"
+                  required
+                  value={editSubjName}
+                  onChange={(e) => setEditSubjName(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Target Semester</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="8"
+                  required
+                  value={editSubjSem}
+                  onChange={(e) => setEditSubjSem(parseInt(e.target.value))}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Assigned Instructor</label>
+                <select value={editTeacherId} onChange={(e) => setEditTeacherId(e.target.value)} id="edit-teacher-select">
+                  <option value="">-- Leave Unassigned --</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher.id} value={teacher.id.toString()}>
+                      {teacher.name} ({teacher.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setSubjectEditModalOpen(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-primary" id="submit-edit-subject-btn">
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Subject Roster Modal */}
+      {rosterModalOpen && editingSubject && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '680px' }}>
+            <div className="modal-header">
+              <div>
+                <h3 style={{ color: 'white', fontSize: '20px' }}>Manage Students</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '4px' }}>
+                  {editingSubject.name} | Semester {editingSubject.semester}
+                </p>
+              </div>
+              <button
+                onClick={() => setRosterModalOpen(false)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: '20px', cursor: 'pointer' }}
+                aria-label="Close student roster dialog"
+              >
+                &times;
+              </button>
+            </div>
+
+            {rosterLoading ? (
+              <p style={{ color: 'var(--text-muted)', padding: '20px 0' }}>Loading student roster...</p>
+            ) : (
+              <div style={{ maxHeight: '360px', overflowY: 'auto', border: '1px solid var(--border-glass)' }}>
+                {studentProfiles.map((student) => (
+                    <label
+                      key={student.id}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '24px minmax(0, 1fr) auto',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px 14px',
+                        borderBottom: '1px solid var(--border-glass)',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={rosterStudentIds.includes(student.id)}
+                        onChange={() => toggleRosterStudent(student.id)}
+                        style={{ width: '16px', height: '16px' }}
+                      />
+                      <span style={{ minWidth: 0 }}>
+                        <strong style={{ display: 'block', color: 'white', fontSize: '14px' }}>{student.name}</strong>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{student.email}</span>
+                      </span>
+                      <span style={{ color: 'var(--text-muted)', fontSize: '12px', textAlign: 'right' }}>
+                        {student.student_id_str}<br />Semester {student.semester}
+                      </span>
+                    </label>
+                  ))}
+                {studentProfiles.length === 0 && (
+                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '24px' }}>
+                    No student profiles are available.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="modal-actions">
+              <span style={{ marginRight: 'auto', color: 'var(--text-muted)', fontSize: '13px' }}>
+                {rosterStudentIds.length} selected
+              </span>
+              <button type="button" className="btn-secondary" onClick={() => setRosterModalOpen(false)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={handleSaveRoster}
+                disabled={rosterLoading || rosterSaving}
+                id="save-subject-roster-btn"
+              >
+                {rosterSaving ? 'Saving...' : 'Save Roster'}
+              </button>
+            </div>
           </div>
         </div>
       )}

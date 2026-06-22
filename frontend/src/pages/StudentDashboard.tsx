@@ -309,17 +309,19 @@ export const StudentDashboard: React.FC = () => {
                   marginBottom: '6px',
                   border: '1px solid var(--border-glass)'
                 }}>
-                  <span style={{ fontSize: '13px', fontWeight: 500, color: 'white' }}>{subj.name}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: 'white' }}>
+                    {subj.name} <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Semester {subj.semester}</span>
+                  </span>
                   <CheckCircle size={16} style={{ color: 'var(--success)' }} />
                 </div>
               ))}
               {enrolledSubjects.length === 0 && (
-                <p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Not enrolled in any courses for Semester {student.semester}.</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Not enrolled in any subjects yet.</p>
               )}
             </div>
 
             <div>
-              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>Available to Select (Semester {student.semester})</div>
+              <div style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>Available Subjects</div>
               {availableSubjects.map((subj) => (
                 <div key={subj.id} style={{
                   display: 'flex',
@@ -333,7 +335,9 @@ export const StudentDashboard: React.FC = () => {
                 }}
                 id={`avail-subj-${subj.id}`}
                 >
-                  <span style={{ fontSize: '13px', fontWeight: 500, color: 'white' }}>{subj.name}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: 'white' }}>
+                    {subj.name} <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Semester {subj.semester}</span>
+                  </span>
                   <button
                     onClick={() => handleEnroll(subj.id)}
                     disabled={enrollLoading === subj.id}
