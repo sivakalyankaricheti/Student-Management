@@ -45,7 +45,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
   const autofillUser = (roleEmail: string) => {
     setEmail(roleEmail);
-    setPassword(roleEmail.split('@')[0] + '123');
+    setPassword('');
   };
 
   return (
@@ -139,7 +139,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
         <div style={{ marginTop: '32px', borderTop: '1px solid var(--border-glass)', paddingTop: '20px' }}>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '12px', textAlign: 'center' }}>
-            Suggested Credentials:
+            Suggested Accounts:
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
             <button
