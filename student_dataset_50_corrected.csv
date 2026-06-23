@@ -1,51 +1,46 @@
 student_id,name,email,semester,subject,grade,attendance,engagement_score
-1001,Student 1,student1@example.com,1,Mathematics,A,73,77
-1002,Student 2,student2@example.com,2,Physics,A,76,82
-1003,Student 3,student3@example.com,3,Chemistry,A,79,87
-1004,Student 4,student4@example.com,4,Biology,B,82,92
-1005,Student 5,student5@example.com,5,Computer Science,B,85,97
-1006,Student 6,student6@example.com,6,History,B,88,73
-1007,Student 7,student7@example.com,1,Economics,C,91,78
-1008,Student 8,student8@example.com,2,Statistics,C,94,83
-1009,Student 9,student9@example.com,3,English,A,97,88
-1010,Student 10,student10@example.com,4,Psychology,A,100,93
-1011,Student 11,student11@example.com,5,Mathematics,A,72,98
-1012,Student 12,student12@example.com,6,Physics,B,75,74
-1013,Student 13,student13@example.com,1,Chemistry,B,78,79
-1014,Student 14,student14@example.com,2,Biology,B,81,84
-1015,Student 15,student15@example.com,3,Computer Science,C,84,89
-1016,Student 16,student16@example.com,4,History,C,87,94
-1017,Student 17,student17@example.com,5,Economics,A,90,99
-1018,Student 18,student18@example.com,6,Statistics,A,93,75
-1019,Student 19,student19@example.com,1,English,A,96,80
-1020,Student 20,student20@example.com,2,Psychology,B,99,85
-1021,Student 21,student21@example.com,3,Mathematics,B,71,90
-1022,Student 22,student22@example.com,4,Physics,B,74,95
-1023,Student 23,student23@example.com,5,Chemistry,C,77,100
-1024,Student 24,student24@example.com,6,Biology,C,80,76
-1025,Student 25,student25@example.com,1,Computer Science,A,83,81
-1026,Student 26,student26@example.com,2,History,A,86,86
-1027,Student 27,student27@example.com,3,Economics,A,89,91
-1028,Student 28,student28@example.com,4,Statistics,B,92,96
-1029,Student 29,student29@example.com,5,English,B,95,72
-1030,Student 30,student30@example.com,6,Psychology,B,98,77
-1031,Student 31,student31@example.com,1,Mathematics,C,70,82
-1032,Student 32,student32@example.com,2,Physics,C,73,87
-1033,Student 33,student33@example.com,3,Chemistry,A,76,92
-1034,Student 34,student34@example.com,4,Biology,A,79,97
-1035,Student 35,student35@example.com,5,Computer Science,A,82,73
-1036,Student 36,student36@example.com,6,History,B,85,78
-1037,Student 37,student37@example.com,1,Economics,B,88,83
-1038,Student 38,student38@example.com,2,Statistics,B,91,88
-1039,Student 39,student39@example.com,3,English,C,94,93
-1040,Student 40,student40@example.com,4,Psychology,C,97,98
-1041,Student 41,student41@example.com,5,Mathematics,A,100,74
-1042,Student 42,student42@example.com,6,Physics,A,72,79
-1043,Student 43,student43@example.com,1,Chemistry,A,75,84
-1044,Student 44,student44@example.com,2,Biology,B,78,89
-1045,Student 45,student45@example.com,3,Computer Science,B,81,94
-1046,Student 46,student46@example.com,4,History,B,84,99
-1047,Student 47,student47@example.com,5,Economics,C,87,75
-1048,Student 48,student48@example.com,6,Statistics,C,90,80
-1049,Student 49,student49@example.com,1,English,A,93,85
-1050,Student 50,student50@example.com,2,Psychology,A,96,90
+1006,Student 6,student6@dashboard.com,6,History,B,88,73
+1007,Student 7,student7@dashboard.com,1,Economics,C,91,78
+1008,Student 8,student8@dashboard.com,2,Statistics,C,94,83
+1009,Student 9,student9@dashboard.com,3,English,A,97,88
+1010,Student 10,student10@dashboard.com,4,Psychology,A,100,93
+1011,Student 11,student11@dashboard.com,5,Mathematics,A,72,98
+1012,Student 12,student12@dashboard.com,6,Physics,B,75,74
+1013,Student 13,student13@dashboard.com,1,Chemistry,B,78,79
+1014,Student 14,student14@dashboard.com,2,Biology,B,81,84
+1015,Student 15,student15@dashboard.com,3,Computer Science,C,84,89
+1016,Student 16,student16@dashboard.com,4,History,C,87,94
+1017,Student 17,student17@dashboard.com,5,Economics,A,90,99
+1018,Student 18,student18@dashboard.com,6,Statistics,A,93,75
+1019,Student 19,student19@dashboard.com,1,English,A,96,80
+1020,Student 20,student20@dashboard.com,2,Psychology,B,99,85
+1021,Student 21,student21@dashboard.com,3,Mathematics,B,71,90
+1022,Student 22,student22@dashboard.com,4,Physics,B,74,95
+1023,Student 23,student23@dashboard.com,5,Chemistry,C,77,100
+1024,Student 24,student24@dashboard.com,6,Biology,C,80,76
+1025,Student 25,student25@dashboard.com,1,Computer Science,A,83,81
+1026,Student 26,student26@dashboard.com,2,History,A,86,86
+1027,Student 27,student27@dashboard.com,3,Economics,A,89,91
+1028,Student 28,student28@dashboard.com,4,Statistics,B,92,96
+1029,Student 29,student29@dashboard.com,5,English,B,95,72
+1030,Student 30,student30@dashboard.com,6,Psychology,B,98,77
+1031,Student 31,student31@dashboard.com,1,Mathematics,C,70,82
+1032,Student 32,student32@dashboard.com,2,Physics,C,73,87
+1033,Student 33,student33@dashboard.com,3,Chemistry,A,76,92
+1034,Student 34,student34@dashboard.com,4,Biology,A,79,97
+1035,Student 35,student35@dashboard.com,5,Computer Science,A,82,73
+1036,Student 36,student36@dashboard.com,6,History,B,85,78
+1037,Student 37,student37@dashboard.com,1,Economics,B,88,83
+1038,Student 38,student38@dashboard.com,2,Statistics,B,91,88
+1039,Student 39,student39@dashboard.com,3,English,C,94,93
+1040,Student 40,student40@dashboard.com,4,Psychology,C,97,98
+1041,Student 41,student41@dashboard.com,5,Mathematics,A,100,74
+1042,Student 42,student42@dashboard.com,6,Physics,A,72,79
+1043,Student 43,student43@dashboard.com,1,Chemistry,A,75,84
+1044,Student 44,student44@dashboard.com,2,Biology,B,78,89
+1045,Student 45,student45@dashboard.com,3,Computer Science,B,81,94
+1046,Student 46,student46@dashboard.com,4,History,B,84,99
+1047,Student 47,student47@dashboard.com,5,Economics,C,87,75
+1048,Student 48,student48@dashboard.com,6,Statistics,C,90,80
+1049,Student 49,student49@dashboard.com,1,English,A,93,85
+1050,Student 50,student50@dashboard.com,2,Psychology,A,96,90
